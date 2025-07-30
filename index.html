@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gym Tracker</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Gym Tracker</h1>
+    <nav>
+      <button data-target="home">Inicio</button>
+      <button data-target="rutina">Rutina</button>
+      <button data-target="progreso">Progreso</button>
+      <button data-target="ajustes">Ajustes</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Sección Inicio -->
+    <section id="home" class="active">
+      <h2>Resumen</h2>
+      <p>Has completado <span id="total-sesiones">0</span> sesiones.</p>
+    </section>
+
+    <!-- Sección Rutina -->
+    <section id="rutina">
+      <h2>Registrar Ejercicio</h2>
+      <form id="form-rutina">
+        <input type="date" id="fecha" required />
+        <input type="text" id="ejercicio" placeholder="Ejercicio" required />
+        <input type="number" id="reps" placeholder="Reps" min="1" required />
+        <input type="number" id="peso" placeholder="Peso (kg)" min="0" required />
+        <button type="submit">Guardar</button>
+      </form>
+    </section>
+
+    <!-- Sección Progreso -->
+    <section id="progreso">
+      <h2>Historial de Sesiones</h2>
+      <ul id="lista-rutinas"></ul>
+    </section>
+
+    <!-- Sección Ajustes -->
+    <section id="ajustes">
+      <h2>Ajustes</h2>
+      <button id="btn-reset">Borrar todo</button>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
