@@ -1,54 +1,120 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gym Tracker</title>
-  <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Documentos</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>Gym Tracker</h1>
-    <nav>
-      <button data-target="home">Inicio</button>
-      <button data-target="rutina">Rutina</button>
-      <button data-target="progreso">Progreso</button>
-      <button data-target="ajustes">Ajustes</button>
-    </nav>
-  </header>
+    <div class="container">
+        <header>
+            <h1>📄 Gestor de Documentos</h1>
+            <p>Clasifica, organiza y busca tus documentos automáticamente</p>
+            <div class="nav-buttons" id="navButtons">
+                <button class="nav-btn active" data-tab="upload">📤 Cargar</button>
+                <button class="nav-btn" data-tab="explorer">🗂️ Explorador</button>
+            </div>
+        </header>
 
-  <main>
-    <!-- Sección Inicio -->
-    <section id="home" class="active">
-      <h2>Resumen</h2>
-      <p>Has completado <span id="total-sesiones">0</span> sesiones.</p>
-    </section>
+        <main>
+            <!-- UPLOAD SECTION -->
+            <div id="upload" class="section active">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-area-icon">📤</div>
+                    <h3>Arrastra archivos aquí o haz clic</h3>
+                    <p>Formatos: PNG, JPG, JPEG</p>
+                    <input type="file" id="fileInput" multiple accept="image/*">
+                </div>
 
-    <!-- Sección Rutina -->
-    <section id="rutina">
-      <h2>Registrar Ejercicio</h2>
-      <form id="form-rutina">
-        <input type="date" id="fecha" required />
-        <input type="text" id="ejercicio" placeholder="Ejercicio" required />
-        <input type="number" id="reps" placeholder="Reps" min="1" required />
-        <input type="number" id="peso" placeholder="Peso (kg)" min="0" required />
-        <button type="submit">Guardar</button>
-      </form>
-    </section>
+                <div class="files-list" id="filesList"></div>
 
-    <!-- Sección Progreso -->
-    <section id="progreso">
-      <h2>Historial de Sesiones</h2>
-      <ul id="lista-rutinas"></ul>
-    </section>
+                <div style="text-align: center; margin: 30px 0;">
+                    <button class="btn-primary" id="processBtn" disabled>
+                        🚀 Procesar Documentos
+                    </button>
+                </div>
 
-    <!-- Sección Ajustes -->
-    <section id="ajustes">
-      <h2>Ajustes</h2>
-      <button id="btn-reset">Borrar todo</button>
-    </section>
-  </main>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill">0%</div>
+                </div>
 
-  <script src="app.js"></script>
+                <h2 style="margin-top: 40px; margin-bottom: 20px;">🔍 Buscar</h2>
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Buscar por colaborador...">
+                    <button class="btn-secondary" id="clearSearchBtn">Limpiar</button>
+                </div>
+
+                <h2 style="margin: 40px 0 20px 0;">📊 Resultados</h2>
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Archivo</th>
+                            <th>Categoría</th>
+                            <th>Colaborador</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                        <tr><td colspan="5" style="text-align: center; color: #999;">Sin documentos</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="log-container" id="logContainer"></div>
+            </div>
+
+            <!-- EXPLORER SECTION -->
+            <div id="explorer" class="section">
+                <div class="search-bar">
+                    <input type="text" id="explorerSearch" placeholder="Filtrar documentos...">
+                </div>
+                <div id="explorerContent" style="margin-top: 30px;">
+                    <p style="text-align: center; color: #999;">Cargue documentos para verlos aquí</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal" id="documentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Detalles del Documento</h2>
+                <button class="modal-close" id="modalCloseBtn">✕</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- TEMPLATES -->
+    <template id="fileItemTemplate">
+        <div class="file-item">
+            <div class="file-info">
+                <div class="file-icon">📄</div>
+                <div class="file-details">
+                    <h4 data-file-name></h4>
+                    <p data-file-size></p>
+                </div>
+            </div>
+            <button class="btn-remove" data-action="remove-file">✕</button>
+        </div>
+    </template>
+
+    <template id="resultRowTemplate">
+        <tr>
+            <td data-doc-name></td>
+            <td><span class="badge" data-doc-category></span></td>
+            <td data-doc-collaborator></td>
+            <td data-doc-date></td>
+            <td><button class="btn-secondary btn-view" data-action="view-doc" style="padding: 6px 12px; font-size: 0.9em;">👁️ Ver</button></td>
+        </tr>
+    </template>
+
+    <template id="explorerItemTemplate">
+        <!-- El explorador se genera dinámicamente en JS, pero una plantilla podría ser útil para los items individuales si se vuelve más complejo -->
+    </template>
+
+    <script src="script.js"></script>
 </body>
 </html>
