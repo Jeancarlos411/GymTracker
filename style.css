@@ -272,6 +272,54 @@ tbody tr:hover { background: #f8f9fa; }
 .badge-yellow { background: #fff3cd; color: #856404; }
 .badge-purple { background: #e2d1f3; color: #550071; }
 .log-container { background: #1e1e1e; color: #00ff00; padding: 20px; border-radius: 10px; font-family: 'Courier New', monospace; font-size: 0.9em; max-height: 300px; overflow-y: auto; margin-top: 30px; }
+.features-intro {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.features-intro h2 {
+    font-size: 2em;
+    margin-bottom: 10px;
+    color: var(--primary-color);
+}
+
+.features-intro p {
+    color: var(--text-light);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.features-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.feature-card {
+    background: #f8f9ff;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 10px 25px var(--shadow-light);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card h3 {
+    margin-bottom: 15px;
+    color: var(--secondary-color);
+    font-size: 1.2em;
+}
+
+.feature-card p {
+    color: var(--text-light);
+    line-height: 1.5;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px var(--shadow-light);
+}
+
 .log-entry { margin-bottom: 8px; padding: 5px 0; }
 .log-time { color: #888; }
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
