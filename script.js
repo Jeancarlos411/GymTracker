@@ -7,11 +7,6 @@
     const pendingClassifications = [];
     let eventListenersInitialized = false;
 
-    const AUTH_CREDENTIALS = {
-        username: 'admin',
-        password: 'admin123'
-    };
-
     // DOM Elements
     const dom = {
         container: document.getElementById('appContainer'),
@@ -84,34 +79,94 @@
     function initializeAuth() {
         authDom.form.addEventListener('submit', handleLoginSubmit);
         dom.logoutBtn.addEventListener('click', handleLogout);
-
-        if (localStorage.getItem('isAdminAuthenticated') === 'true') {
-            enterApp();
-        } else {
-            lockApp();
-        }
+        verifySession();
     }
 
-    function handleLoginSubmit(e) {
+    async function verifySession() {
+        try {
+            const response = await fetch('/api/session', { credentials: 'include' });
+            if (response.ok) {
+                const data = await response.json();
+                if (data.authenticated) {
+                    enterApp();
+                    return;
+                }
+            }
+        } catch (error) {
+            console.warn('No se pudo verificar la sesión actual:', error);
+        }
+        lockApp();
+    }
+
+    function setAuthLoading(isLoading) {
+        const submitBtn = authDom.form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            if (!submitBtn.dataset.defaultLabel) {
+                submitBtn.dataset.defaultLabel = submitBtn.textContent.trim();
+            }
+            submitBtn.textContent = isLoading ? 'Iniciando…' : submitBtn.dataset.defaultLabel;
+            submitBtn.disabled = isLoading;
+        }
+        [authDom.username, authDom.password].forEach(input => {
+            input.disabled = isLoading;
+        });
+    }
+
+    async function handleLoginSubmit(e) {
         e.preventDefault();
 
         const username = authDom.username.value.trim();
         const password = authDom.password.value;
 
-        if (username === AUTH_CREDENTIALS.username && password === AUTH_CREDENTIALS.password) {
-            authDom.error.textContent = '';
-            localStorage.setItem('isAdminAuthenticated', 'true');
-            enterApp();
+        if (!username || !password) {
+            authDom.error.textContent = 'Por favor completa usuario y contraseña.';
             return;
         }
 
-        authDom.error.textContent = 'Credenciales inválidas. Verifica usuario y contraseña.';
-        authDom.password.value = '';
-        authDom.password.focus();
+        setAuthLoading(true);
+        authDom.error.textContent = '';
+
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            let payload = {};
+            try {
+                payload = await response.json();
+            } catch (parseError) {
+                console.warn('No se pudo interpretar la respuesta de autenticación:', parseError);
+            }
+
+            if (response.ok && payload.success) {
+                authDom.form.reset();
+                authDom.error.textContent = '';
+                enterApp();
+            } else {
+                const message = payload && payload.message ? payload.message : 'Credenciales inválidas. Verifica usuario y contraseña.';
+                authDom.error.textContent = message;
+                authDom.password.value = '';
+                authDom.password.focus();
+            }
+        } catch (error) {
+            console.error('Error al intentar iniciar sesión:', error);
+            authDom.error.textContent = 'No se pudo conectar con el servidor. Intenta de nuevo.';
+        } finally {
+            setAuthLoading(false);
+        }
     }
 
-    function handleLogout() {
-        localStorage.removeItem('isAdminAuthenticated');
+    async function handleLogout() {
+        try {
+            await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+        } catch (error) {
+            console.warn('No se pudo cerrar sesión en el servidor:', error);
+        }
         closeModal();
         lockApp();
     }
@@ -125,9 +180,11 @@
         document.body.classList.remove('auth-locked');
         dom.logoutBtn.classList.add('visible');
         authDom.form.reset();
+        setAuthLoading(false);
     }
 
     function lockApp() {
+        setAuthLoading(false);
         dom.container.classList.add('locked');
         dom.container.setAttribute('aria-hidden', 'true');
         document.body.classList.add('auth-locked');

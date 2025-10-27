@@ -5,6 +5,12 @@
   "scripts": {
     "start": "node server.js"
   },
+  "dependencies": {
+    "mssql": "^10.0.1"
+  },
+  "optionalDependencies": {
+    "msnodesqlv8": "^3.0.0"
+  },
   "author": "",
   "license": "MIT",
   "engines": {
