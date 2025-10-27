@@ -56,9 +56,9 @@
         dom.resultsBody.addEventListener('click', handleResultsTableClick);
 
         dom.modal.addEventListener('click', (e) => {
-            if (e.target === dom.modal) closeModal();
+            if (e.target === dom.modal) handleModalClose();
         });
-        dom.modalCloseBtn.addEventListener('click', closeModal);
+        dom.modalCloseBtn.addEventListener('click', handleModalClose);
         dom.modalBody.addEventListener('click', handleModalBodyClick);
     }
 
@@ -132,6 +132,14 @@
             saveClassification();
         } else if (action === 'cancel-classification') {
             closeClassificationModal();
+        }
+    }
+
+    function handleModalClose() {
+        if (fileToProcess) {
+            closeClassificationModal();
+        } else {
+            closeModal();
         }
     }
 
