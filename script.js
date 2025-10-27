@@ -4,6 +4,7 @@
     let documents = [];
     let fileObjects = [];
     let fileToProcess = null;
+    const pendingClassifications = [];
 
     // DOM Elements
     const dom = {
@@ -235,6 +236,14 @@
 
     // --- MODAL FUNCTIONS ---
 
+    function openNextClassification() {
+        if (fileToProcess) return;
+        const nextItem = pendingClassifications.shift();
+        if (nextItem) {
+            showClassificationModal(nextItem.file, nextItem.imageUrl);
+        }
+    }
+
     function showClassificationModal(file, imageUrl) {
         fileToProcess = { file, imageUrl };
         const modalHtml = `
@@ -265,6 +274,7 @@
     function closeClassificationModal() {
         dom.modal.classList.remove('active');
         fileToProcess = null;
+        openNextClassification();
     }
 
     function viewDocument(id) {
@@ -325,6 +335,7 @@
 
         closeClassificationModal();
         filterResults();
+        openNextClassification();
     }
 
     function processDocuments() {
@@ -359,15 +370,15 @@
                 // Simula un pequeño retraso para cada archivo
                 setTimeout(() => {
                     addLog(`📄 ${file.name} - Pendiente de clasificación`);
-                    // Solo muestra un modal a la vez
-                    if (!fileToProcess) {
-                        showClassificationModal(file, e.target.result);
-                    }
+                    pendingClassifications.push({ file, imageUrl: e.target.result });
+                    openNextClassification();
                     updateProgress();
                 }, 300 * processedCount);
             };
             reader.readAsDataURL(file);
         });
+
+        openNextClassification();
     }
 
     // --- UTILITY FUNCTIONS ---
