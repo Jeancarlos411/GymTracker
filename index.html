@@ -6,11 +6,31 @@
     <title>Gestor de Documentos</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div class="container">
+<body class="auth-locked">
+    <div class="auth-overlay visible" id="authOverlay" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+        <form class="auth-card" id="loginForm" novalidate>
+            <h2 id="authTitle">🔒 Acceso Administrador</h2>
+            <p class="auth-subtitle">Inicia sesión para gestionar los documentos.</p>
+            <label for="usernameInput">Usuario</label>
+            <input type="text" id="usernameInput" name="username" placeholder="admin" autocomplete="username" required>
+            <label for="passwordInput">Contraseña</label>
+            <input type="password" id="passwordInput" name="password" placeholder="••••••••" autocomplete="current-password" required>
+            <p class="auth-error" id="loginError" role="alert" aria-live="assertive"></p>
+            <button type="submit" class="btn-primary auth-submit">Iniciar sesión</button>
+        </form>
+    </div>
+
+    <div class="container locked" id="appContainer" aria-hidden="true">
         <header>
-            <h1>📄 Gestor de Documentos</h1>
-            <p>Clasifica, organiza y busca tus documentos automáticamente</p>
+            <div class="header-top">
+                <div class="header-intro">
+                    <h1>📄 Gestor de Documentos</h1>
+                    <p>Clasifica, organiza y busca tus documentos automáticamente</p>
+                </div>
+                <button id="logoutBtn" class="logout-btn" type="button" aria-label="Cerrar sesión de administrador">
+                    🔐 Cerrar sesión
+                </button>
+            </div>
             <div class="nav-buttons" id="navButtons">
                 <button class="nav-btn active" data-tab="upload">📤 Cargar</button>
                 <button class="nav-btn" data-tab="explorer">🗂️ Explorador</button>

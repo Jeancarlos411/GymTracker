@@ -5,9 +5,16 @@
     let fileObjects = [];
     let fileToProcess = null;
     const pendingClassifications = [];
+    let eventListenersInitialized = false;
+
+    const AUTH_CREDENTIALS = {
+        username: 'admin',
+        password: 'admin123'
+    };
 
     // DOM Elements
     const dom = {
+        container: document.getElementById('appContainer'),
         uploadArea: document.getElementById('uploadArea'),
         fileInput: document.getElementById('fileInput'),
         filesList: document.getElementById('filesList'),
@@ -25,6 +32,15 @@
         modalTitle: document.getElementById('modalTitle'),
         modalBody: document.getElementById('modalBody'),
         modalCloseBtn: document.getElementById('modalCloseBtn'),
+        logoutBtn: document.getElementById('logoutBtn'),
+    };
+
+    const authDom = {
+        overlay: document.getElementById('authOverlay'),
+        form: document.getElementById('loginForm'),
+        username: document.getElementById('usernameInput'),
+        password: document.getElementById('passwordInput'),
+        error: document.getElementById('loginError'),
     };
 
     // Templates
@@ -36,6 +52,9 @@
     // --- EVENT LISTENERS ---
 
     function initializeEventListeners() {
+        if (eventListenersInitialized) return;
+        eventListenersInitialized = true;
+
         dom.uploadArea.addEventListener('click', () => dom.fileInput.click());
         dom.uploadArea.addEventListener('dragover', handleDragOver);
         dom.uploadArea.addEventListener('dragleave', handleDragLeave);
@@ -60,6 +79,64 @@
         });
         dom.modalCloseBtn.addEventListener('click', handleModalClose);
         dom.modalBody.addEventListener('click', handleModalBodyClick);
+    }
+
+    function initializeAuth() {
+        authDom.form.addEventListener('submit', handleLoginSubmit);
+        dom.logoutBtn.addEventListener('click', handleLogout);
+
+        if (localStorage.getItem('isAdminAuthenticated') === 'true') {
+            enterApp();
+        } else {
+            lockApp();
+        }
+    }
+
+    function handleLoginSubmit(e) {
+        e.preventDefault();
+
+        const username = authDom.username.value.trim();
+        const password = authDom.password.value;
+
+        if (username === AUTH_CREDENTIALS.username && password === AUTH_CREDENTIALS.password) {
+            authDom.error.textContent = '';
+            localStorage.setItem('isAdminAuthenticated', 'true');
+            enterApp();
+            return;
+        }
+
+        authDom.error.textContent = 'Credenciales inválidas. Verifica usuario y contraseña.';
+        authDom.password.value = '';
+        authDom.password.focus();
+    }
+
+    function handleLogout() {
+        localStorage.removeItem('isAdminAuthenticated');
+        closeModal();
+        lockApp();
+    }
+
+    function enterApp() {
+        initializeEventListeners();
+        authDom.overlay.classList.remove('visible');
+        authDom.overlay.setAttribute('aria-hidden', 'true');
+        dom.container.classList.remove('locked');
+        dom.container.removeAttribute('aria-hidden');
+        document.body.classList.remove('auth-locked');
+        dom.logoutBtn.classList.add('visible');
+        authDom.form.reset();
+    }
+
+    function lockApp() {
+        dom.container.classList.add('locked');
+        dom.container.setAttribute('aria-hidden', 'true');
+        document.body.classList.add('auth-locked');
+        authDom.overlay.classList.add('visible');
+        authDom.overlay.setAttribute('aria-hidden', 'false');
+        dom.logoutBtn.classList.remove('visible');
+        authDom.error.textContent = '';
+        authDom.form.reset();
+        setTimeout(() => authDom.username.focus(), 100);
     }
 
     // --- EVENT HANDLERS ---
@@ -407,6 +484,6 @@
 
     // --- INITIALIZATION ---
 
-    initializeEventListeners();
+    initializeAuth();
 
 })();
