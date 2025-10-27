@@ -280,8 +280,14 @@
     }
 
     function closeClassificationModal() {
-        dom.modal.classList.remove('active');
+        if (!fileToProcess) {
+            closeModal();
+            openNextClassification();
+            return;
+        }
+
         fileToProcess = null;
+        closeModal();
         openNextClassification();
     }
 
@@ -343,7 +349,6 @@
 
         closeClassificationModal();
         filterResults();
-        openNextClassification();
     }
 
     function processDocuments() {
