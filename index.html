@@ -6,14 +6,35 @@
     <title>Gestor de Documentos</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div class="container">
+<body class="auth-locked">
+    <div class="auth-overlay visible" id="authOverlay" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+        <form class="auth-card" id="loginForm" novalidate>
+            <h2 id="authTitle">🔒 Acceso Administrador</h2>
+            <p class="auth-subtitle">Inicia sesión para gestionar los documentos.</p>
+            <label for="usernameInput">Usuario</label>
+            <input type="text" id="usernameInput" name="username" placeholder="admin" autocomplete="username" required>
+            <label for="passwordInput">Contraseña</label>
+            <input type="password" id="passwordInput" name="password" placeholder="••••••••" autocomplete="current-password" required>
+            <p class="auth-error" id="loginError" role="alert" aria-live="assertive"></p>
+            <button type="submit" class="btn-primary auth-submit">Iniciar sesión</button>
+        </form>
+    </div>
+
+    <div class="container locked" id="appContainer" aria-hidden="true">
         <header>
-            <h1>📄 Gestor de Documentos</h1>
-            <p>Clasifica, organiza y busca tus documentos automáticamente</p>
+            <div class="header-top">
+                <div class="header-intro">
+                    <h1>📄 Gestor de Documentos</h1>
+                    <p>Clasifica, organiza y busca tus documentos automáticamente</p>
+                </div>
+                <button id="logoutBtn" class="logout-btn" type="button" aria-label="Cerrar sesión de administrador">
+                    🔐 Cerrar sesión
+                </button>
+            </div>
             <div class="nav-buttons" id="navButtons">
                 <button class="nav-btn active" data-tab="upload">📤 Cargar</button>
                 <button class="nav-btn" data-tab="explorer">🗂️ Explorador</button>
+                <button class="nav-btn" data-tab="features">⚙️ Funcionalidades</button>
             </div>
         </header>
 
@@ -72,6 +93,81 @@
                 <div id="explorerContent" style="margin-top: 30px;">
                     <p style="text-align: center; color: #999;">Cargue documentos para verlos aquí</p>
                 </div>
+            </div>
+
+            <!-- FEATURES SECTION -->
+            <div id="features" class="section">
+                <section class="features-intro">
+                    <h2>🚀 ¿Qué puedes hacer con el Gestor?</h2>
+                    <p>Descubre las herramientas disponibles para clasificar, organizar y consultar tus documentos sin complicaciones, junto con recomendaciones para sacarles el máximo provecho.</p>
+                </section>
+
+                <section class="features-grid">
+                    <article class="feature-card">
+                        <h3>📤 Carga masiva de archivos</h3>
+                        <p>Arrastra y suelta imágenes o selecciónalas desde tu dispositivo para preparar lotes completos de documentos.</p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>🧠 Clasificación asistida</h3>
+                        <p>Revisa cada documento en un modal con vista previa, asigna colaborador, categoría e información adicional de forma guiada.</p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>📚 Historial organizado</h3>
+                        <p>Consulta un resumen de los documentos clasificados, incluyendo categoría, fecha y ruta sugerida de almacenamiento.</p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>🗂️ Explorador inteligente</h3>
+                        <p>Filtra rápidamente por nombre, colaborador o categoría para encontrar el documento adecuado en segundos.</p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>📝 Registro en tiempo real</h3>
+                        <p>Mantente al tanto del progreso con un registro de acciones que muestra el estado de cada archivo procesado.</p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>🔍 Búsqueda instantánea</h3>
+                        <p>Utiliza el buscador integrado para localizar documentos en tu historial sin abandonar la página.</p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>☁️ Copias de respaldo</h3>
+                        <p>Genera respaldos programados del historial para tener versiones seguras antes de depurar o mover archivos.</p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>📈 Reportes descargables</h3>
+                        <p>Prepara informes mensuales con métricas de clasificación y descárgalos en formatos listos para compartir.</p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>🔔 Alertas automáticas</h3>
+                        <p>Configura recordatorios para documentos pendientes de revisión y recibe avisos por correo o chat interno.</p>
+                    </article>
+                </section>
+
+                <section class="feature-recommendations">
+                    <h3>✅ Buenas prácticas recomendadas</h3>
+                    <ul class="recommendations-list">
+                        <li><strong>Estandariza nombres:</strong> utiliza un formato consistente para colaboradores y categorías a fin de mejorar las búsquedas.</li>
+                        <li><strong>Etiqueta desde el inicio:</strong> asigna categoría y comentarios en la primera revisión para evitar reprocesos.</li>
+                        <li><strong>Sincroniza carpetas:</strong> replica la ruta sugerida en tu servicio en la nube para mantener ordenada la estructura.</li>
+                        <li><strong>Comparte resultados:</strong> exporta reportes periódicos y compártelos con el equipo para alinear procesos.</li>
+                    </ul>
+                </section>
+
+                <section class="feature-roadmap">
+                    <h3>✨ Recomendaciones avanzadas</h3>
+                    <div class="roadmap-grid">
+                        <article class="roadmap-card">
+                            <h4>Automatiza integraciones</h4>
+                            <p>Conecta el gestor con tu CRM o herramienta de tickets para crear incidencias y asignaciones automáticas.</p>
+                        </article>
+                        <article class="roadmap-card">
+                            <h4>Monitorea indicadores</h4>
+                            <p>Define KPIs como tiempo promedio de clasificación o documentos pendientes para visualizar tendencias.</p>
+                        </article>
+                        <article class="roadmap-card">
+                            <h4>Establece auditorías</h4>
+                            <p>Agenda revisiones trimestrales para validar que cada documento esté ubicado y etiquetado correctamente.</p>
+                        </article>
+                    </div>
+                </section>
             </div>
         </main>
     </div>

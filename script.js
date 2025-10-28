@@ -4,9 +4,12 @@
     let documents = [];
     let fileObjects = [];
     let fileToProcess = null;
+    const pendingClassifications = [];
+    let eventListenersInitialized = false;
 
     // DOM Elements
     const dom = {
+        container: document.getElementById('appContainer'),
         uploadArea: document.getElementById('uploadArea'),
         fileInput: document.getElementById('fileInput'),
         filesList: document.getElementById('filesList'),
@@ -24,6 +27,15 @@
         modalTitle: document.getElementById('modalTitle'),
         modalBody: document.getElementById('modalBody'),
         modalCloseBtn: document.getElementById('modalCloseBtn'),
+        logoutBtn: document.getElementById('logoutBtn'),
+    };
+
+    const authDom = {
+        overlay: document.getElementById('authOverlay'),
+        form: document.getElementById('loginForm'),
+        username: document.getElementById('usernameInput'),
+        password: document.getElementById('passwordInput'),
+        error: document.getElementById('loginError'),
     };
 
     // Templates
@@ -35,6 +47,9 @@
     // --- EVENT LISTENERS ---
 
     function initializeEventListeners() {
+        if (eventListenersInitialized) return;
+        eventListenersInitialized = true;
+
         dom.uploadArea.addEventListener('click', () => dom.fileInput.click());
         dom.uploadArea.addEventListener('dragover', handleDragOver);
         dom.uploadArea.addEventListener('dragleave', handleDragLeave);
@@ -55,10 +70,130 @@
         dom.resultsBody.addEventListener('click', handleResultsTableClick);
 
         dom.modal.addEventListener('click', (e) => {
-            if (e.target === dom.modal) closeModal();
+            if (e.target === dom.modal) handleModalClose();
         });
-        dom.modalCloseBtn.addEventListener('click', closeModal);
+        dom.modalCloseBtn.addEventListener('click', handleModalClose);
         dom.modalBody.addEventListener('click', handleModalBodyClick);
+    }
+
+    function initializeAuth() {
+        authDom.form.addEventListener('submit', handleLoginSubmit);
+        dom.logoutBtn.addEventListener('click', handleLogout);
+        verifySession();
+    }
+
+    async function verifySession() {
+        try {
+            const response = await fetch('/api/session', { credentials: 'include' });
+            if (response.ok) {
+                const data = await response.json();
+                if (data.authenticated) {
+                    enterApp();
+                    return;
+                }
+            }
+        } catch (error) {
+            console.warn('No se pudo verificar la sesión actual:', error);
+        }
+        lockApp();
+    }
+
+    function setAuthLoading(isLoading) {
+        const submitBtn = authDom.form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            if (!submitBtn.dataset.defaultLabel) {
+                submitBtn.dataset.defaultLabel = submitBtn.textContent.trim();
+            }
+            submitBtn.textContent = isLoading ? 'Iniciando…' : submitBtn.dataset.defaultLabel;
+            submitBtn.disabled = isLoading;
+        }
+        [authDom.username, authDom.password].forEach(input => {
+            input.disabled = isLoading;
+        });
+    }
+
+    async function handleLoginSubmit(e) {
+        e.preventDefault();
+
+        const username = authDom.username.value.trim();
+        const password = authDom.password.value;
+
+        if (!username || !password) {
+            authDom.error.textContent = 'Por favor completa usuario y contraseña.';
+            return;
+        }
+
+        setAuthLoading(true);
+        authDom.error.textContent = '';
+
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            let payload = {};
+            try {
+                payload = await response.json();
+            } catch (parseError) {
+                console.warn('No se pudo interpretar la respuesta de autenticación:', parseError);
+            }
+
+            if (response.ok && payload.success) {
+                authDom.form.reset();
+                authDom.error.textContent = '';
+                enterApp();
+            } else {
+                const message = payload && payload.message ? payload.message : 'Credenciales inválidas. Verifica usuario y contraseña.';
+                authDom.error.textContent = message;
+                authDom.password.value = '';
+                authDom.password.focus();
+            }
+        } catch (error) {
+            console.error('Error al intentar iniciar sesión:', error);
+            authDom.error.textContent = 'No se pudo conectar con el servidor. Intenta de nuevo.';
+        } finally {
+            setAuthLoading(false);
+        }
+    }
+
+    async function handleLogout() {
+        try {
+            await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+        } catch (error) {
+            console.warn('No se pudo cerrar sesión en el servidor:', error);
+        }
+        closeModal();
+        lockApp();
+    }
+
+    function enterApp() {
+        initializeEventListeners();
+        authDom.overlay.classList.remove('visible');
+        authDom.overlay.setAttribute('aria-hidden', 'true');
+        dom.container.classList.remove('locked');
+        dom.container.removeAttribute('aria-hidden');
+        document.body.classList.remove('auth-locked');
+        dom.logoutBtn.classList.add('visible');
+        authDom.form.reset();
+        setAuthLoading(false);
+    }
+
+    function lockApp() {
+        setAuthLoading(false);
+        dom.container.classList.add('locked');
+        dom.container.setAttribute('aria-hidden', 'true');
+        document.body.classList.add('auth-locked');
+        authDom.overlay.classList.add('visible');
+        authDom.overlay.setAttribute('aria-hidden', 'false');
+        dom.logoutBtn.classList.remove('visible');
+        authDom.error.textContent = '';
+        authDom.form.reset();
+        setTimeout(() => authDom.username.focus(), 100);
     }
 
     // --- EVENT HANDLERS ---
@@ -131,6 +266,14 @@
             saveClassification();
         } else if (action === 'cancel-classification') {
             closeClassificationModal();
+        }
+    }
+
+    function handleModalClose() {
+        if (fileToProcess) {
+            closeClassificationModal();
+        } else {
+            closeModal();
         }
     }
 
@@ -235,6 +378,14 @@
 
     // --- MODAL FUNCTIONS ---
 
+    function openNextClassification() {
+        if (fileToProcess) return;
+        const nextItem = pendingClassifications.shift();
+        if (nextItem) {
+            showClassificationModal(nextItem.file, nextItem.imageUrl);
+        }
+    }
+
     function showClassificationModal(file, imageUrl) {
         fileToProcess = { file, imageUrl };
         const modalHtml = `
@@ -263,8 +414,15 @@
     }
 
     function closeClassificationModal() {
-        dom.modal.classList.remove('active');
+        if (!fileToProcess) {
+            closeModal();
+            openNextClassification();
+            return;
+        }
+
         fileToProcess = null;
+        closeModal();
+        openNextClassification();
     }
 
     function viewDocument(id) {
@@ -359,15 +517,15 @@
                 // Simula un pequeño retraso para cada archivo
                 setTimeout(() => {
                     addLog(`📄 ${file.name} - Pendiente de clasificación`);
-                    // Solo muestra un modal a la vez
-                    if (!fileToProcess) {
-                        showClassificationModal(file, e.target.result);
-                    }
+                    pendingClassifications.push({ file, imageUrl: e.target.result });
+                    openNextClassification();
                     updateProgress();
                 }, 300 * processedCount);
             };
             reader.readAsDataURL(file);
         });
+
+        openNextClassification();
     }
 
     // --- UTILITY FUNCTIONS ---
@@ -383,6 +541,6 @@
 
     // --- INITIALIZATION ---
 
-    initializeEventListeners();
+    initializeAuth();
 
 })();
